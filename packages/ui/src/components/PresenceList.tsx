@@ -3,8 +3,9 @@ import './presence.css';
 type PresenceMember = {
   id: string;
   displayName?: string;
-  role?: string;
+  department?: string;
   presence?: { online?: boolean; lastSeenAt?: string };
+  customDeptLabel?: string | null;
 };
 
 export const PresenceList = ({ members }: { members: PresenceMember[] }) => {
@@ -15,7 +16,11 @@ export const PresenceList = ({ members }: { members: PresenceMember[] }) => {
           <span className={member.presence?.online ? 'dot online' : 'dot'} />
           <div>
             <div className="name">{member.displayName ?? member.id}</div>
-            <div className="meta">{member.role ?? 'Unknown role'}</div>
+            <div className="meta">
+              {member.department === 'CUSTOM'
+                ? member.customDeptLabel ?? 'Custom'
+                : member.department ?? 'Unknown department'}
+            </div>
           </div>
         </li>
       ))}

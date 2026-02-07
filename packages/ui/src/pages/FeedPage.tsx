@@ -4,7 +4,8 @@ import { CueCard } from '../components/CueCard';
 import { PresenceList } from '../components/PresenceList';
 import type { FirebaseContextValue } from '../services/firebase';
 import { addAck, addCant, addConfirm, useCues, useMembers, useShow } from '../services/firebase';
-import { Priority, Role } from '@cuemesh/shared';
+import type { Cue, Member } from '@cuemesh/shared';
+import { AccessRole, Department, Priority, cueTargetsMember } from '@cuemesh/shared';
 import { getNativeBridge } from '../nativeBridge';
 
 export const FeedPage = ({ firebase }: { firebase: FirebaseContextValue }) => {
@@ -12,21 +13,36 @@ export const FeedPage = ({ firebase }: { firebase: FirebaseContextValue }) => {
   const cues = useCues(firebase.db, showId);
   const members = useMembers(firebase.db, showId);
   const show = useShow(firebase.db, showId);
-  const [role, setRole] = useState<Role>('OPERATOR');
+  const [department, setDepartment] = useState<Department>('DECK');
+  const [accessRole, setAccessRole] = useState<AccessRole>('CREW');
   const [priority, setPriority] = useState<Priority | 'ALL'>('ALL');
   const userId = firebase.user?.uid;
   const playedGoRef = useRef<Set<string>>(new Set());
   const native = getNativeBridge();
 
+  useEffect(() => {
+    const selfMember = members.find((member) => member.id === userId);
+    if (!selfMember) return;
+    if (selfMember.department) {
+      setDepartment(selfMember.department as Department);
+    }
+    if (selfMember.accessRole) {
+      setAccessRole(selfMember.accessRole as AccessRole);
+    }
+  }, [members, userId]);
+
+  const currentMember = useMemo(
+    () => ({ department, accessRole }) satisfies Pick<Member, 'department' | 'accessRole'>,
+    [department, accessRole]
+  );
+
   const filtered = useMemo(() => {
     return cues.filter((cue) => {
-      const targets = cue.targets as { roles?: string[] } | undefined;
-      const targetRoles = targets?.roles;
-      const matchesRole = !targetRoles?.length || targetRoles.includes(role);
+      const matchesTargets = cueTargetsMember(cue as Cue, currentMember);
       const matchesPriority = priority === 'ALL' || cue.priority === priority;
-      return matchesRole && matchesPriority;
+      return matchesTargets && matchesPriority;
     });
-  }, [cues, priority, role]);
+  }, [cues, currentMember, priority]);
 
   const standbyCues = filtered.filter((cue) => cue.status === 'STANDBY');
   const goCues = filtered.filter((cue) => cue.status === 'GO');
@@ -54,22 +70,13 @@ export const FeedPage = ({ firebase }: { firebase: FirebaseContextValue }) => {
         <div className="cm-panel-hd">
           <div className="cm-title">Operator Feed</div>
           <div className="cm-row">
-            <span className="cm-chip">Role: {role}</span>
+            <span className="cm-chip">Department: {department}</span>
+            <span className="cm-chip">Access: {accessRole}</span>
             <span className="cm-chip">Show: {String(show?.name ?? showId ?? 'Unknown')}</span>
           </div>
         </div>
         <div className="cm-panel-bd">
           <div className="cm-row" style={{ marginBottom: 12 }}>
-            <label>
-              Role filter
-              <select value={role} onChange={(event) => setRole(event.target.value as Role)}>
-                {Object.values(Role).map((value) => (
-                  <option key={value} value={value}>
-                    {value}
-                  </option>
-                ))}
-              </select>
-            </label>
             <label>
               Priority
               <select

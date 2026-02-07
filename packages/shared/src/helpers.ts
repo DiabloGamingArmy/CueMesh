@@ -1,9 +1,37 @@
-import { CueStatus, Role } from './enums';
-import type { Cue } from './schemas';
+import { AccessRole, CueStatus, Department } from './enums';
+import type { Cue, Member } from './schemas';
 
-export const isTargetedToRole = (cue: Cue, role: Role) => {
-  if (!cue.targets.roles?.length) return true;
-  return cue.targets.roles.includes(role);
+export const deriveAccessRoleFromDepartment = (department: Department): AccessRole => {
+  if (department === 'DIRECTOR_TD') return 'DIRECTOR';
+  if (department === 'STAGE_MANAGER' || department === 'ASSISTANT_STAGE_MANAGER') {
+    return 'STAGE_MANAGER';
+  }
+  return 'CREW';
+};
+
+type LegacyTargets = string[] | { roles?: string[]; users?: string[] };
+type CueTargets = { departments: string[]; accessRoles?: string[] } | LegacyTargets;
+
+export const cueTargetsMember = (cue: Cue, member: Pick<Member, 'department' | 'accessRole'>) => {
+  const targets = cue.targets as CueTargets | undefined;
+  if (!targets) return true;
+
+  if (Array.isArray(targets)) {
+    return targets.includes(member.department);
+  }
+
+  if ('departments' in targets) {
+    const deptMatch = targets.departments?.includes(member.department) ?? false;
+    const roleMatch = targets.accessRoles?.includes(member.accessRole) ?? false;
+    if (!targets.departments?.length && !targets.accessRoles?.length) return true;
+    return deptMatch || roleMatch;
+  }
+
+  if ('roles' in targets && targets.roles?.length) {
+    return targets.roles.includes(member.accessRole);
+  }
+
+  return true;
 };
 
 export const canTransitionStatus = (from: CueStatus, to: CueStatus) => {

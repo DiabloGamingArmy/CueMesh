@@ -1,7 +1,8 @@
 import { z } from 'zod';
-import { CueStatus, CueType, Priority, Role } from './enums';
+import { AccessRole, CueStatus, CueType, Department, Priority } from './enums';
 
-const roleValues = Object.values(Role) as [Role, ...Role[]];
+const accessRoleValues = Object.values(AccessRole) as [AccessRole, ...AccessRole[]];
+const departmentValues = Object.values(Department) as [Department, ...Department[]];
 const cueTypeValues = Object.values(CueType) as [CueType, ...CueType[]];
 const cueStatusValues = Object.values(CueStatus) as [CueStatus, ...CueStatus[]];
 const priorityValues = Object.values(Priority) as [Priority, ...Priority[]];
@@ -14,9 +15,11 @@ export const presenceSchema = z.object({
 export const memberSchema = z.object({
   userId: z.string(),
   displayName: z.string(),
-  role: z.enum(roleValues),
+  accessRole: z.enum(accessRoleValues),
+  department: z.enum(departmentValues),
+  customDeptLabel: z.string().nullable().optional(),
   presence: presenceSchema,
-  permissions: z.array(z.string())
+  deviceId: z.string()
 });
 
 export const cueSchema = z.object({
@@ -24,8 +27,8 @@ export const cueSchema = z.object({
   title: z.string(),
   details: z.string().optional(),
   targets: z.object({
-    roles: z.array(z.enum(roleValues)).optional(),
-    users: z.array(z.string()).optional()
+    departments: z.array(z.enum(departmentValues)),
+    accessRoles: z.array(z.enum(accessRoleValues)).optional()
   }),
   priority: z.enum(priorityValues),
   status: z.enum(cueStatusValues),
