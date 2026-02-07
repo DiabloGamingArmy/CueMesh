@@ -1,5 +1,6 @@
 import { useMemo, useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
+import { ErrorBanner } from '../components/ErrorBanner';
 import { PresenceList } from '../components/PresenceList';
 import type { FirebaseContextValue } from '../services/firebase';
 import { joinShow, useMembers, useShow } from '../services/firebase';
@@ -8,7 +9,7 @@ import { Department, deriveAccessRoleFromDepartment } from '@cuemesh/shared';
 export const ShowPage = ({ firebase }: { firebase: FirebaseContextValue }) => {
   const { showId } = useParams();
   const navigate = useNavigate();
-  const show = useShow(firebase.db, showId);
+  const { show, error } = useShow(firebase.db, showId);
   const members = useMembers(firebase.db, showId);
   const [displayName, setDisplayName] = useState('');
   const [department, setDepartment] = useState<Department>('DECK');
@@ -41,6 +42,14 @@ export const ShowPage = ({ firebase }: { firebase: FirebaseContextValue }) => {
           <span className="cm-chip">{String(show?.name ?? showId ?? 'Show')}</span>
         </div>
         <div className="cm-panel-bd">
+          {error ? (
+            <div className="cm-stack" style={{ marginBottom: 12 }}>
+              <ErrorBanner message="You don’t have access to this show yet. If you just created it, refresh once." />
+              <button className="cm-btn" onClick={() => window.location.reload()}>
+                Retry
+              </button>
+            </div>
+          ) : null}
           <p style={{ color: 'var(--muted)' }}>Choose your role and set presence.</p>
           <label>
             Display name

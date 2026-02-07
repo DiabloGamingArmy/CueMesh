@@ -2,18 +2,36 @@ import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import type { FirebaseContextValue } from '../services/firebase';
 import { createShow } from '../services/firebase';
+import { ErrorBanner } from '../components/ErrorBanner';
 
 export const LandingPage = ({ firebase }: { firebase: FirebaseContextValue }) => {
   const navigate = useNavigate();
   const [name, setName] = useState('');
   const [venue, setVenue] = useState('');
   const [showId, setShowId] = useState('');
+  const [errorMessage, setErrorMessage] = useState<string | null>(null);
+  const [isWorking, setIsWorking] = useState(false);
   const userId = firebase.user?.uid;
 
   const handleCreate = async () => {
-    if (!userId || !name) return;
-    const id = await createShow(firebase.db, userId, name, venue);
-    navigate(`/show/${id}`);
+    if (!userId) return;
+    if (!name.trim()) {
+      setErrorMessage('Show name is required.');
+      return;
+    }
+    setIsWorking(true);
+    setErrorMessage(null);
+    try {
+      const id = await createShow(firebase.db, userId, name.trim(), venue, {
+        email: firebase.user?.email ?? undefined
+      });
+      navigate(`/show/${id}`);
+    } catch (error) {
+      const message = error instanceof Error ? error.message : 'Failed to create show.';
+      setErrorMessage(message);
+    } finally {
+      setIsWorking(false);
+    }
   };
 
   const handleJoin = () => {
@@ -28,6 +46,11 @@ export const LandingPage = ({ firebase }: { firebase: FirebaseContextValue }) =>
           <div className="cm-title">Create a show</div>
         </div>
         <div className="cm-panel-bd">
+          {errorMessage ? (
+            <div style={{ marginBottom: 12 }}>
+              <ErrorBanner message={errorMessage} />
+            </div>
+          ) : null}
           <label>
             Show name
             <input value={name} onChange={(event) => setName(event.target.value)} />
@@ -36,7 +59,11 @@ export const LandingPage = ({ firebase }: { firebase: FirebaseContextValue }) =>
             Venue
             <input value={venue} onChange={(event) => setVenue(event.target.value)} />
           </label>
-          <button className="cm-btn cm-btn-good" onClick={handleCreate} disabled={!userId}>
+          <button
+            className="cm-btn cm-btn-good"
+            onClick={handleCreate}
+            disabled={!userId || isWorking}
+          >
             Create show
           </button>
         </div>

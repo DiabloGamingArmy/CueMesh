@@ -9,6 +9,7 @@ import {
   serverTimestamp,
   setDoc,
   updateDoc,
+  writeBatch,
   addDoc,
   query,
   orderBy,
@@ -39,15 +40,44 @@ export const useFirebase = (app: FirebaseApp) => {
   return { app, db, user } satisfies FirebaseContextValue;
 };
 
-export const createShow = async (db: Firestore, userId: string, name: string, venue: string) => {
+const resolveDeviceId = () => {
+  if (typeof crypto !== 'undefined' && 'randomUUID' in crypto) {
+    return crypto.randomUUID();
+  }
+  return Math.random().toString(36).slice(2, 10);
+};
+
+export const createShow = async (
+  db: Firestore,
+  userId: string,
+  name: string,
+  venue: string,
+  options?: { email?: string; deviceId?: string }
+) => {
   const showRef = doc(collection(db, 'shows'));
-  await setDoc(showRef, {
+  const batch = writeBatch(db);
+  batch.set(showRef, {
     name,
     venue,
     status: 'ACTIVE',
     createdAt: serverTimestamp(),
     createdBy: userId
   });
+  const displayName = options?.email?.split('@')[0] ?? 'Director';
+  const memberRef = doc(db, 'shows', showRef.id, 'members', userId);
+  batch.set(memberRef, {
+    userId,
+    displayName,
+    accessRole: 'DIRECTOR',
+    department: 'DIRECTOR_TD',
+    customDeptLabel: null,
+    presence: {
+      online: true,
+      lastSeenAt: serverTimestamp()
+    },
+    deviceId: options?.deviceId ?? resolveDeviceId()
+  });
+  await batch.commit();
   return showRef.id;
 };
 
@@ -82,15 +112,23 @@ export const joinShow = async (
 
 export const useShow = (db: Firestore, showId?: string) => {
   const [show, setShow] = useState<Record<string, unknown> | null>(null);
+  const [error, setError] = useState<Error | null>(null);
   useEffect(() => {
     if (!showId) return;
     const ref = doc(db, 'shows', showId);
-    const unsub = onSnapshot(ref, (snap) => {
-      setShow(snap.exists() ? { id: snap.id, ...snap.data() } : null);
-    });
+    const unsub = onSnapshot(
+      ref,
+      (snap) => {
+        setError(null);
+        setShow(snap.exists() ? { id: snap.id, ...snap.data() } : null);
+      },
+      (err) => {
+        setError(err);
+      }
+    );
     return () => unsub();
   }, [db, showId]);
-  return show;
+  return { show, error };
 };
 
 export const useMembers = (db: Firestore, showId?: string) => {

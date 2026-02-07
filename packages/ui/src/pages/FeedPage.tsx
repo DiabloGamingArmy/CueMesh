@@ -12,7 +12,7 @@ export const FeedPage = ({ firebase }: { firebase: FirebaseContextValue }) => {
   const { showId } = useParams();
   const cues = useCues(firebase.db, showId);
   const members = useMembers(firebase.db, showId);
-  const show = useShow(firebase.db, showId);
+  const { show } = useShow(firebase.db, showId);
   const [department, setDepartment] = useState<Department>('DECK');
   const [accessRole, setAccessRole] = useState<AccessRole>('CREW');
   const [priority, setPriority] = useState<Priority | 'ALL'>('ALL');
