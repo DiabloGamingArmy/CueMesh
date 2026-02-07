@@ -1,0 +1,57 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    function isSignedIn() {
+      return request.auth != null;
+    }
+
+    function memberDoc(showId) {
+      return get(/databases/$(database)/documents/shows/$(showId)/members/$(request.auth.uid));
+    }
+
+    function isMember(showId) {
+      return isSignedIn() && memberDoc(showId).exists();
+    }
+
+    function isDirector(showId) {
+      return isMember(showId) && memberDoc(showId).data.role == 'DIRECTOR';
+    }
+
+    match /shows/{showId} {
+      allow read: if isMember(showId);
+      allow create: if isSignedIn();
+      allow update, delete: if isDirector(showId);
+
+      match /members/{memberId} {
+        allow read: if isMember(showId);
+        allow create, update: if isSignedIn() && request.auth.uid == memberId;
+        allow delete: if isDirector(showId);
+      }
+
+      match /cues/{cueId} {
+        allow read: if isMember(showId);
+        allow create: if isDirector(showId);
+        allow update: if isDirector(showId);
+        allow delete: if isDirector(showId);
+
+        match /acks/{ackId} {
+          allow read: if isMember(showId);
+          allow create: if isSignedIn() && request.auth.uid == ackId;
+          allow update, delete: if false;
+        }
+
+        match /confirms/{confirmId} {
+          allow read: if isMember(showId);
+          allow create: if isSignedIn() && request.auth.uid == confirmId;
+          allow update, delete: if false;
+        }
+      }
+
+      match /events/{eventId} {
+        allow read: if isMember(showId);
+        allow create: if isMember(showId);
+        allow update, delete: if false;
+      }
+    }
+  }
+}

@@ -1,0 +1,39 @@
+.panel {
+  background: #fff;
+  padding: 16px;
+  border-radius: 12px;
+  box-shadow: 0 2px 8px rgba(16, 24, 40, 0.08);
+}
+
+.presence-list {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+.presence-list li {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 8px 0;
+}
+
+.dot {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  background: #d0d5dd;
+}
+
+.dot.online {
+  background: #12b76a;
+}
+
+.name {
+  font-weight: 600;
+}
+
+.meta {
+  font-size: 0.85rem;
+  color: #667085;
+}

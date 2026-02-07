@@ -1,0 +1,5 @@
+{
+  "identifier": "default",
+  "description": "Default permissions for CueMesh desktop",
+  "permissions": ["core:default", "event:default"]
+}
