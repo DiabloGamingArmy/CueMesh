@@ -1,0 +1,27 @@
+{
+  "name": "cuemesh",
+  "private": true,
+  "packageManager": "pnpm@9.12.0",
+  "engines": {
+    "node": ">=20"
+  },
+  "scripts": {
+    "dev:web": "pnpm --filter @cuemesh/web dev",
+    "dev:desktop": "pnpm --filter @cuemesh/desktop dev",
+    "lint": "pnpm --filter @cuemesh/ui --filter @cuemesh/web --filter @cuemesh/desktop --filter @cuemesh/shared lint",
+    "typecheck": "pnpm --filter @cuemesh/ui --filter @cuemesh/web --filter @cuemesh/desktop --filter @cuemesh/shared typecheck",
+    "build:web": "pnpm --filter @cuemesh/web build",
+    "build:desktop": "pnpm --filter @cuemesh/desktop build",
+    "format": "prettier . --check"
+  },
+  "devDependencies": {
+    "@typescript-eslint/eslint-plugin": "^7.18.0",
+    "@typescript-eslint/parser": "^7.18.0",
+    "eslint": "^9.9.0",
+    "eslint-config-prettier": "^9.1.0",
+    "eslint-plugin-react": "^7.35.0",
+    "eslint-plugin-react-hooks": "^4.6.2",
+    "prettier": "^3.3.3",
+    "typescript": "^5.5.4"
+  }
+}
