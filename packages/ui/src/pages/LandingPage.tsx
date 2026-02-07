@@ -22,28 +22,38 @@ export const LandingPage = ({ firebase }: { firebase: FirebaseContextValue }) =>
   };
 
   return (
-    <div className="page">
-      <section className="panel">
-        <h2>Create a show</h2>
-        <label>
-          Show name
-          <input value={name} onChange={(event) => setName(event.target.value)} />
-        </label>
-        <label>
-          Venue
-          <input value={venue} onChange={(event) => setVenue(event.target.value)} />
-        </label>
-        <button onClick={handleCreate} disabled={!userId}>
-          Create show
-        </button>
+    <div className="cm-shell" style={{ gridTemplateColumns: '1fr 1fr' }}>
+      <section className="cm-panel">
+        <div className="cm-panel-hd">
+          <div className="cm-title">Create a show</div>
+        </div>
+        <div className="cm-panel-bd">
+          <label>
+            Show name
+            <input value={name} onChange={(event) => setName(event.target.value)} />
+          </label>
+          <label>
+            Venue
+            <input value={venue} onChange={(event) => setVenue(event.target.value)} />
+          </label>
+          <button className="cm-btn cm-btn-good" onClick={handleCreate} disabled={!userId}>
+            Create show
+          </button>
+        </div>
       </section>
-      <section className="panel">
-        <h2>Join a show</h2>
-        <label>
-          Show ID
-          <input value={showId} onChange={(event) => setShowId(event.target.value)} />
-        </label>
-        <button onClick={handleJoin}>Join show</button>
+      <section className="cm-panel">
+        <div className="cm-panel-hd">
+          <div className="cm-title">Join a show</div>
+        </div>
+        <div className="cm-panel-bd">
+          <label>
+            Show ID
+            <input value={showId} onChange={(event) => setShowId(event.target.value)} />
+          </label>
+          <button className="cm-btn" onClick={handleJoin}>
+            Join show
+          </button>
+        </div>
       </section>
     </div>
   );

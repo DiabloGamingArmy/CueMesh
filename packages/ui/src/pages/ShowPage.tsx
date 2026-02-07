@@ -22,29 +22,41 @@ export const ShowPage = ({ firebase }: { firebase: FirebaseContextValue }) => {
   };
 
   return (
-    <div className="page">
-      <section className="panel">
-        <h2>{String(show?.name ?? 'Show')}</h2>
-        <p>Choose your role to join and set your presence.</p>
-        <label>
-          Display name
-          <input value={displayName} onChange={(event) => setDisplayName(event.target.value)} />
-        </label>
-        <label>
-          Role
-          <select value={role} onChange={(event) => setRole(event.target.value as Role)}>
-            {Object.values(Role).map((value) => (
-              <option key={value} value={value}>
-                {value}
-              </option>
-            ))}
-          </select>
-        </label>
-        <button onClick={handleJoin} disabled={!userId}>
-          Join show
-        </button>
+    <div className="cm-shell">
+      <section className="cm-panel">
+        <div className="cm-panel-hd">
+          <div className="cm-title">Show lobby</div>
+          <span className="cm-chip">{String(show?.name ?? showId ?? 'Show')}</span>
+        </div>
+        <div className="cm-panel-bd">
+          <p style={{ color: 'var(--muted)' }}>Choose your role and set presence.</p>
+          <label>
+            Display name
+            <input value={displayName} onChange={(event) => setDisplayName(event.target.value)} />
+          </label>
+          <label>
+            Role
+            <select value={role} onChange={(event) => setRole(event.target.value as Role)}>
+              {Object.values(Role).map((value) => (
+                <option key={value} value={value}>
+                  {value}
+                </option>
+              ))}
+            </select>
+          </label>
+          <button className="cm-btn cm-btn-good" onClick={handleJoin} disabled={!userId}>
+            Join show
+          </button>
+        </div>
       </section>
-      <PresenceList members={members as Array<{ id: string }>} />
+      <section className="cm-panel">
+        <div className="cm-panel-hd">
+          <div className="cm-title">Presence</div>
+        </div>
+        <div className="cm-panel-bd">
+          <PresenceList members={members as Array<{ id: string }>} />
+        </div>
+      </section>
     </div>
   );
 };

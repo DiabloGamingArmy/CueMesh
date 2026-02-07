@@ -1,24 +1,24 @@
-import { Link } from 'react-router-dom';
-import './layout.css';
-
 type LayoutProps = {
-  showId?: string;
+  title?: string;
+  right?: React.ReactNode;
   children: React.ReactNode;
 };
 
-export const Layout = ({ showId, children }: LayoutProps) => {
+export const Layout = ({ title, right, children }: LayoutProps) => {
   return (
-    <div className="layout">
-      <header className="header">
-        <div className="brand">CueMesh</div>
-        <nav className="nav">
-          <Link to="/">Home</Link>
-          {showId && <Link to={`/show/${showId}`}>Show</Link>}
-          {showId && <Link to={`/show/${showId}/feed`}>Feed</Link>}
-          {showId && <Link to={`/show/${showId}/director`}>Director</Link>}
-        </nav>
+    <div className="cm-app">
+      <header className="cm-topbar">
+        <div className="cm-topbar-inner">
+          <div className="cm-brand">
+            <span className="cm-dot" />
+            <span>CueMesh</span>
+          </div>
+          <span className="cm-chip">{title ?? 'Live cueing'}</span>
+          <div className="cm-spacer" />
+          {right}
+        </div>
       </header>
-      <main className="content">{children}</main>
+      {children}
     </div>
   );
 };

@@ -6,6 +6,8 @@ import { FeedPage } from './pages/FeedPage';
 import { DirectorPage } from './pages/DirectorPage';
 import type { FirebaseApp } from 'firebase/app';
 import { useFirebase } from './services/firebase';
+import './styles/tokens.css';
+import './styles/app.css';
 import './styles/base.css';
 
 export type AppProps = {
@@ -21,7 +23,7 @@ export const App = ({ firebaseApp }: AppProps) => {
         <Route
           path="/"
           element={
-            <Layout>
+            <Layout title="Create or join">
               <LandingPage firebase={firebase} />
             </Layout>
           }
@@ -29,7 +31,7 @@ export const App = ({ firebaseApp }: AppProps) => {
         <Route
           path="/show/:showId"
           element={
-            <Layout>
+            <Layout title="Show lobby">
               <ShowPage firebase={firebase} />
             </Layout>
           }
@@ -37,7 +39,7 @@ export const App = ({ firebaseApp }: AppProps) => {
         <Route
           path="/show/:showId/feed"
           element={
-            <Layout>
+            <Layout title="Operator feed">
               <FeedPage firebase={firebase} />
             </Layout>
           }
@@ -45,7 +47,7 @@ export const App = ({ firebaseApp }: AppProps) => {
         <Route
           path="/show/:showId/director"
           element={
-            <Layout>
+            <Layout title="Director console">
               <DirectorPage firebase={firebase} />
             </Layout>
           }
