@@ -144,6 +144,47 @@ export const useMembers = (db: Firestore, showId?: string) => {
   return members;
 };
 
+export const useMember = (db: Firestore, showId?: string, userId?: string) => {
+  const [member, setMember] = useState<Record<string, unknown> | null>(null);
+  useEffect(() => {
+    if (!showId || !userId) return;
+    const ref = doc(db, 'shows', showId, 'members', userId);
+    const unsub = onSnapshot(ref, (snap) => {
+      setMember(snap.exists() ? { id: snap.id, ...snap.data() } : null);
+    });
+    return () => unsub();
+  }, [db, showId, userId]);
+  return member;
+};
+
+export const usePresenceHeartbeat = (db: Firestore, showId?: string, userId?: string) => {
+  useEffect(() => {
+    if (!showId || !userId) return;
+    const memberRef = doc(db, 'shows', showId, 'members', userId);
+    const markOnline = () =>
+      updateDoc(memberRef, {
+        presence: { online: true, lastSeenAt: serverTimestamp() }
+      }).catch(() => undefined);
+    const markOffline = () =>
+      updateDoc(memberRef, {
+        presence: { online: false, lastSeenAt: serverTimestamp() }
+      }).catch(() => undefined);
+
+    markOnline();
+    const interval = setInterval(markOnline, 30000);
+    const handleUnload = () => {
+      void markOffline();
+    };
+    window.addEventListener('beforeunload', handleUnload);
+
+    return () => {
+      clearInterval(interval);
+      window.removeEventListener('beforeunload', handleUnload);
+      void markOffline();
+    };
+  }, [db, showId, userId]);
+};
+
 const normalizeCueTargets = (cue: Record<string, unknown>) => {
   const targets = cue.targets as unknown;
   if (Array.isArray(targets)) {

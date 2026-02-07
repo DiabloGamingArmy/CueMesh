@@ -3,7 +3,7 @@ import { useParams } from 'react-router-dom';
 import { CueCard } from '../components/CueCard';
 import { PresenceList } from '../components/PresenceList';
 import type { FirebaseContextValue } from '../services/firebase';
-import { addAck, addCant, addConfirm, useCues, useMembers, useShow } from '../services/firebase';
+import { addAck, addCant, addConfirm, useCues, useMembers, usePresenceHeartbeat, useShow } from '../services/firebase';
 import type { Cue, Member } from '@cuemesh/shared';
 import { AccessRole, Department, Priority, cueTargetsMember } from '@cuemesh/shared';
 import { getNativeBridge } from '../nativeBridge';
@@ -13,6 +13,7 @@ export const FeedPage = ({ firebase }: { firebase: FirebaseContextValue }) => {
   const cues = useCues(firebase.db, showId);
   const members = useMembers(firebase.db, showId);
   const { show } = useShow(firebase.db, showId);
+  usePresenceHeartbeat(firebase.db, showId, firebase.user?.uid);
   const [department, setDepartment] = useState<Department>('DECK');
   const [accessRole, setAccessRole] = useState<AccessRole>('CREW');
   const [priority, setPriority] = useState<Priority | 'ALL'>('ALL');

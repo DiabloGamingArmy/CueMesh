@@ -2,13 +2,14 @@ import { useMemo, useState } from 'react';
 import { useParams } from 'react-router-dom';
 import { CueCard } from '../components/CueCard';
 import type { FirebaseContextValue } from '../services/firebase';
-import { createCue, updateCueStatus, useCues } from '../services/firebase';
+import { createCue, updateCueStatus, useCues, usePresenceHeartbeat } from '../services/firebase';
 import { AccessRole, CueStatus, Department } from '@cuemesh/shared';
 
 export const DirectorPage = ({ firebase }: { firebase: FirebaseContextValue }) => {
   const { showId } = useParams();
   const cues = useCues(firebase.db, showId);
   const userId = firebase.user?.uid;
+  usePresenceHeartbeat(firebase.db, showId, userId);
   const [selectedDepartments, setSelectedDepartments] = useState<Department[]>([]);
   const [targetAccessRole, setTargetAccessRole] = useState<AccessRole | 'NONE'>('NONE');
 
