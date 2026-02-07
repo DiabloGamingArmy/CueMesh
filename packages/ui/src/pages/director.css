@@ -1,0 +1,8 @@
+.director-bar {
+  margin-bottom: 16px;
+}
+
+.cue-list {
+  display: grid;
+  gap: 16px;
+}
