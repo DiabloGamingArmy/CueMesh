@@ -44,3 +44,6 @@ See docs:
 - `docs/ARCHITECTURE.md`
 - `docs/FIREBASE_SETUP.md`
 - `docs/TAURI_SETUP.md`
+
+## Debug: Script Injection Probe
+Enable the script probe by adding `?debugScripts=1` to the URL or by setting `localStorage.setItem('cuemesh-debug-scripts', '1')` in the browser console.
