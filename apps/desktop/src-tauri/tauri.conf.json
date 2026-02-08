@@ -1,0 +1,26 @@
+{
+  "$schema": "../node_modules/@tauri-apps/cli/schema.json",
+  "productName": "CueMesh",
+  "version": "0.1.0",
+  "identifier": "com.cuemesh.app",
+  "build": {
+    "frontendDist": "../dist",
+    "devUrl": "http://localhost:5174"
+  },
+  "app": {
+    "security": {
+      "capabilities": ["default"]
+    },
+    "windows": [
+      {
+        "title": "CueMesh",
+        "width": 1200,
+        "height": 800
+      }
+    ]
+  },
+  "bundle": {
+    "active": true,
+    "targets": "all"
+  }
+}
