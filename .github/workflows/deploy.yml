@@ -7,6 +7,8 @@ on:
 jobs:
   deploy:
     runs-on: ubuntu-latest
+    env:
+      FIREBASE_PROJECT_ID: cuemeshproductions
     steps:
       - uses: actions/checkout@v4
       - uses: pnpm/action-setup@v4
@@ -43,4 +45,4 @@ jobs:
           GOOGLE_APPLICATION_CREDENTIALS: ${{ runner.temp }}/firebase-sa.json
         run: |
           echo '${{ secrets.FIREBASE_SERVICE_ACCOUNT }}' > $GOOGLE_APPLICATION_CREDENTIALS
-          firebase deploy --project ${{ secrets.FIREBASE_PROJECT_ID }} --only hosting,firestore:rules,functions
+          firebase deploy --project $FIREBASE_PROJECT_ID --only hosting,firestore:rules,functions
