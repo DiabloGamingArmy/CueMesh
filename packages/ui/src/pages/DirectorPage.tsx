@@ -3,15 +3,29 @@ import { useParams } from 'react-router-dom';
 import { CueCard } from '../components/CueCard';
 import type { FirebaseContextValue } from '../services/firebase';
 import { createCue, updateCueStatus, useCues, usePresenceHeartbeat } from '../services/firebase';
-import { AccessRole, CueStatus, Department } from '@cuemesh/shared';
+import { AccessRole, CueStatus, CueType, Department, Priority } from '@cuemesh/shared';
 
 export const DirectorPage = ({ firebase }: { firebase: FirebaseContextValue }) => {
   const { showId } = useParams();
   const cues = useCues(firebase.db, showId);
+  const sortedCues = useMemo(
+    () =>
+      [...cues].sort(
+        (a, b) =>
+          Number((b.createdAt as { seconds?: number })?.seconds ?? 0) -
+          Number((a.createdAt as { seconds?: number })?.seconds ?? 0)
+      ),
+    [cues]
+  );
   const userId = firebase.user?.uid;
   usePresenceHeartbeat(firebase.db, showId, userId);
   const [selectedDepartments, setSelectedDepartments] = useState<Department[]>([]);
   const [targetAccessRole, setTargetAccessRole] = useState<AccessRole | 'NONE'>('NONE');
+  const [cueType, setCueType] = useState<CueType>('STAGE');
+  const [title, setTitle] = useState('');
+  const [details, setDetails] = useState('');
+  const [priority, setPriority] = useState<Priority>('MEDIUM');
+  const [requiresConfirm, setRequiresConfirm] = useState(false);
 
   const quickPicks = useMemo(
     () => [
@@ -19,7 +33,7 @@ export const DirectorPage = ({ firebase }: { firebase: FirebaseContextValue }) =
       { label: 'Lighting', departments: ['LIGHTING_LX_OP', 'LIGHTING_LX_DESIGN'] as Department[] },
       { label: 'Video', departments: ['VIDEO_PROJ', 'VIDEO_SHADING'] as Department[] },
       { label: 'Graphics', departments: ['GRAPHICS_GFX'] as Department[] },
-      { label: 'Stage/Deck', departments: ['DECK', 'STAGE_MANAGER'] as Department[] },
+      { label: 'Deck/Stage', departments: ['DECK', 'STAGE_MANAGER'] as Department[] },
       { label: 'FOH', departments: ['FOH'] as Department[] }
     ],
     []
@@ -46,7 +60,25 @@ export const DirectorPage = ({ firebase }: { firebase: FirebaseContextValue }) =
       departments,
       accessRoles: targetAccessRole === 'NONE' ? undefined : [targetAccessRole]
     };
-    await createCue(firebase.db, showId, userId, targets);
+    await createCue(firebase.db, showId, userId, targets, {
+      cueType,
+      title: title.trim() || 'New Cue',
+      details: details.trim(),
+      priority,
+      requiresConfirm
+    });
+    setTitle('');
+    setDetails('');
+    setRequiresConfirm(false);
+  };
+
+  const handleStatusUpdate = async (cue: Record<string, unknown>, status: CueStatus) => {
+    if (!showId) return;
+    if (status === CueStatus.GO && cue.priority === Priority.CRITICAL) {
+      const ok = window.confirm('This is a CRITICAL cue. Confirm GO?');
+      if (!ok) return;
+    }
+    await updateCueStatus(firebase.db, showId, String(cue.id), status);
   };
 
   return (
@@ -55,10 +87,58 @@ export const DirectorPage = ({ firebase }: { firebase: FirebaseContextValue }) =
         <div className="cm-panel-hd">
           <div className="cm-title">Director console</div>
           <button className="cm-btn cm-btn-good" onClick={handleCreateCue} disabled={!showId || !userId}>
-            Create cue
+            Create Cue (DRAFT)
           </button>
         </div>
         <div className="cm-panel-bd cm-stack">
+          <div className="cm-panel">
+            <div className="cm-panel-hd">
+              <div className="cm-title">Cue composer</div>
+            </div>
+            <div className="cm-panel-bd cm-stack">
+              <div className="cm-row">
+                <label>
+                  Cue type
+                  <select value={cueType} onChange={(event) => setCueType(event.target.value as CueType)}>
+                    <option value="SOUND">Audio</option>
+                    <option value="LIGHT">Lighting</option>
+                    <option value="VIDEO">Video</option>
+                    <option value="FX">FX</option>
+                    <option value="COMMS">Comms</option>
+                    <option value="STAGE">Stage</option>
+                  </select>
+                </label>
+                <label>
+                  Priority
+                  <select
+                    value={priority}
+                    onChange={(event) => setPriority(event.target.value as Priority)}
+                  >
+                    <option value="LOW">LOW</option>
+                    <option value="MEDIUM">NORMAL</option>
+                    <option value="HIGH">HIGH</option>
+                    <option value="CRITICAL">CRITICAL</option>
+                  </select>
+                </label>
+                <label>
+                  Requires confirm
+                  <input
+                    type="checkbox"
+                    checked={requiresConfirm}
+                    onChange={(event) => setRequiresConfirm(event.target.checked)}
+                  />
+                </label>
+              </div>
+              <label>
+                Title
+                <input value={title} onChange={(event) => setTitle(event.target.value)} />
+              </label>
+              <label>
+                Details
+                <textarea value={details} onChange={(event) => setDetails(event.target.value)} rows={3} />
+              </label>
+            </div>
+          </div>
           <div className="cm-row">
             {quickPicks.map((pick) => (
               <button key={pick.label} className="cm-btn" onClick={() => applyQuickPick(pick.departments)}>
@@ -112,20 +192,13 @@ export const DirectorPage = ({ firebase }: { firebase: FirebaseContextValue }) =
           </label>
         </div>
         <div className="cm-panel-bd" style={{ display: 'grid', gap: 16 }}>
-          {cues.map((cue) => (
+          {sortedCues.map((cue) => (
             <CueCard
               key={String(cue.id)}
               cue={cue}
-              onStandby={
-                showId
-                  ? () => updateCueStatus(firebase.db, showId, String(cue.id), CueStatus.STANDBY)
-                  : undefined
-              }
-              onGo={
-                showId
-                  ? () => updateCueStatus(firebase.db, showId, String(cue.id), CueStatus.GO)
-                  : undefined
-              }
+              onStandby={() => handleStatusUpdate(cue, CueStatus.STANDBY)}
+              onGo={() => handleStatusUpdate(cue, CueStatus.GO)}
+              onCant={() => handleStatusUpdate(cue, CueStatus.CANCELED)}
             />
           ))}
         </div>

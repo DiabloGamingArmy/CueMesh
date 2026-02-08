@@ -14,7 +14,8 @@ export const CueType = {
   SOUND: 'SOUND',
   VIDEO: 'VIDEO',
   STAGE: 'STAGE',
-  CUSTOM: 'CUSTOM'
+  FX: 'FX',
+  COMMS: 'COMMS'
 } as const;
 
 export type CueType = (typeof CueType)[keyof typeof CueType];

@@ -16,7 +16,7 @@ import {
   type Firestore
 } from 'firebase/firestore';
 import { useEffect, useState } from 'react';
-import type { AccessRole, CueStatus, Department, Priority } from '@cuemesh/shared';
+import type { AccessRole, CueStatus, CueType, Department, Priority } from '@cuemesh/shared';
 import { CueStatus as CueStatusEnum } from '@cuemesh/shared';
 
 export type FirebaseContextValue = {
@@ -221,19 +221,26 @@ export const createCue = async (
   db: Firestore,
   showId: string,
   userId: string,
-  targets?: { departments: Department[]; accessRoles?: AccessRole[] }
+  targets?: { departments: Department[]; accessRoles?: AccessRole[] },
+  options?: {
+    cueType?: CueType;
+    title?: string;
+    details?: string;
+    priority?: Priority;
+    requiresConfirm?: boolean;
+  }
 ) => {
   const cueRef = doc(collection(db, 'shows', showId, 'cues'));
   await setDoc(cueRef, {
-    cueType: 'STAGE',
-    title: 'New Cue',
-    details: '',
+    cueType: options?.cueType ?? 'STAGE',
+    title: options?.title ?? 'New Cue',
+    details: options?.details ?? '',
     targets: targets ?? { departments: ['DECK'] },
-    priority: 'MEDIUM',
+    priority: options?.priority ?? 'MEDIUM',
     status: 'DRAFT',
     createdAt: serverTimestamp(),
     createdBy: userId,
-    requiresConfirm: false
+    requiresConfirm: options?.requiresConfirm ?? false
   });
 };
 
