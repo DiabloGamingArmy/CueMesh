@@ -3,7 +3,17 @@ import { useParams } from 'react-router-dom';
 import { CueCard } from '../components/CueCard';
 import { PresenceList } from '../components/PresenceList';
 import type { FirebaseContextValue } from '../services/firebase';
-import { addAck, addCant, addConfirm, useCues, useMembers, usePresenceHeartbeat, useShow } from '../services/firebase';
+import {
+  addAck,
+  addCant,
+  addConfirm,
+  useCueAcks,
+  useCueConfirms,
+  useCues,
+  useMembers,
+  usePresenceHeartbeat,
+  useShow
+} from '../services/firebase';
 import type { Cue, Member } from '@cuemesh/shared';
 import { AccessRole, Department, Priority, cueTargetsMember } from '@cuemesh/shared';
 import { getNativeBridge } from '../nativeBridge';
@@ -14,6 +24,8 @@ export const FeedPage = ({ firebase }: { firebase: FirebaseContextValue }) => {
   const members = useMembers(firebase.db, showId);
   const { show } = useShow(firebase.db, showId);
   usePresenceHeartbeat(firebase.db, showId, firebase.user?.uid);
+  const acks = useCueAcks(firebase.db, showId, firebase.user?.uid);
+  const confirms = useCueConfirms(firebase.db, showId, firebase.user?.uid);
   const [department, setDepartment] = useState<Department>('DECK');
   const [accessRole, setAccessRole] = useState<AccessRole>('CREW');
   const [priority, setPriority] = useState<Priority | 'ALL'>('ALL');
@@ -41,7 +53,10 @@ export const FeedPage = ({ firebase }: { firebase: FirebaseContextValue }) => {
     return cues.filter((cue) => {
       const matchesTargets = cueTargetsMember(cue as Cue, currentMember);
       const matchesPriority = priority === 'ALL' || cue.priority === priority;
-      return matchesTargets && matchesPriority;
+      const targetInfo = cue.targets as { departments?: string[]; accessRoles?: string[] } | undefined;
+      const hasTargets =
+        (targetInfo?.departments?.length ?? 0) > 0 || (targetInfo?.accessRoles?.length ?? 0) > 0;
+      return (matchesTargets || !hasTargets) && matchesPriority;
     });
   }, [cues, currentMember, priority]);
 
@@ -100,23 +115,33 @@ export const FeedPage = ({ firebase }: { firebase: FirebaseContextValue }) => {
                 <span className="cm-chip">{standbyCues.length}</span>
               </div>
               <div className="cm-rail-bd">
-                {standbyCues.map((cue) => (
-                  <CueCard
-                    key={String(cue.id)}
-                    cue={cue}
-                    onAck={
-                      userId && showId
-                        ? () => addAck(firebase.db, showId, String(cue.id), userId)
-                        : undefined
-                    }
-                    onConfirm={
-                      userId && showId
-                        ? () => addConfirm(firebase.db, showId, String(cue.id), userId)
-                        : undefined
-                    }
-                    onCant={userId && showId ? () => handleCant(String(cue.id)) : undefined}
-                  />
-                ))}
+                {standbyCues.map((cue) => {
+                  const cueId = String(cue.id);
+                  return (
+                    <CueCard
+                      key={cueId}
+                      cue={cue}
+                      onAck={
+                        userId && showId
+                          ? () => addAck(firebase.db, showId, cueId, userId)
+                          : undefined
+                      }
+                      onConfirm={
+                        userId && showId
+                          ? () => addConfirm(firebase.db, showId, cueId, userId)
+                          : undefined
+                      }
+                      onCant={userId && showId ? () => handleCant(cueId) : undefined}
+                    >
+                      <div className="cm-row" style={{ marginTop: 8 }}>
+                        {acks[cueId] ? <span className="cm-status-chip good">ACKED</span> : null}
+                        {confirms[cueId] ? (
+                          <span className="cm-status-chip warn">CONFIRMED</span>
+                        ) : null}
+                      </div>
+                    </CueCard>
+                  );
+                })}
               </div>
             </div>
             <div className="cm-rail cm-rail-go">
@@ -125,23 +150,33 @@ export const FeedPage = ({ firebase }: { firebase: FirebaseContextValue }) => {
                 <span className="cm-chip">{goCues.length}</span>
               </div>
               <div className="cm-rail-bd">
-                {goCues.map((cue) => (
-                  <CueCard
-                    key={String(cue.id)}
-                    cue={cue}
-                    onAck={
-                      userId && showId
-                        ? () => addAck(firebase.db, showId, String(cue.id), userId)
-                        : undefined
-                    }
-                    onConfirm={
-                      userId && showId
-                        ? () => addConfirm(firebase.db, showId, String(cue.id), userId)
-                        : undefined
-                    }
-                    onCant={userId && showId ? () => handleCant(String(cue.id)) : undefined}
-                  />
-                ))}
+                {goCues.map((cue) => {
+                  const cueId = String(cue.id);
+                  return (
+                    <CueCard
+                      key={cueId}
+                      cue={cue}
+                      onAck={
+                        userId && showId
+                          ? () => addAck(firebase.db, showId, cueId, userId)
+                          : undefined
+                      }
+                      onConfirm={
+                        userId && showId
+                          ? () => addConfirm(firebase.db, showId, cueId, userId)
+                          : undefined
+                      }
+                      onCant={userId && showId ? () => handleCant(cueId) : undefined}
+                    >
+                      <div className="cm-row" style={{ marginTop: 8 }}>
+                        {acks[cueId] ? <span className="cm-status-chip good">ACKED</span> : null}
+                        {confirms[cueId] ? (
+                          <span className="cm-status-chip warn">CONFIRMED</span>
+                        ) : null}
+                      </div>
+                    </CueCard>
+                  );
+                })}
               </div>
             </div>
           </div>

@@ -12,7 +12,9 @@ import {
   writeBatch,
   addDoc,
   query,
+  collectionGroup,
   orderBy,
+  where,
   type Firestore
 } from 'firebase/firestore';
 import { useEffect, useState } from 'react';
@@ -215,6 +217,48 @@ export const useCues = (db: Firestore, showId?: string) => {
     return () => unsub();
   }, [db, showId]);
   return cues;
+};
+
+export const useCueAcks = (db: Firestore, showId?: string, userId?: string) => {
+  const [acks, setAcks] = useState<Record<string, boolean>>({});
+  useEffect(() => {
+    if (!showId || !userId) return;
+    const ref = query(
+      collectionGroup(db, 'acks'),
+      where('userId', '==', userId)
+    );
+    const unsub = onSnapshot(ref, (snap) => {
+      const next: Record<string, boolean> = {};
+      snap.docs.forEach((docSnap) => {
+        const path = docSnap.ref.parent.parent?.id;
+        if (path) next[path] = true;
+      });
+      setAcks(next);
+    });
+    return () => unsub();
+  }, [db, showId, userId]);
+  return acks;
+};
+
+export const useCueConfirms = (db: Firestore, showId?: string, userId?: string) => {
+  const [confirms, setConfirms] = useState<Record<string, boolean>>({});
+  useEffect(() => {
+    if (!showId || !userId) return;
+    const ref = query(
+      collectionGroup(db, 'confirms'),
+      where('userId', '==', userId)
+    );
+    const unsub = onSnapshot(ref, (snap) => {
+      const next: Record<string, boolean> = {};
+      snap.docs.forEach((docSnap) => {
+        const path = docSnap.ref.parent.parent?.id;
+        if (path) next[path] = true;
+      });
+      setConfirms(next);
+    });
+    return () => unsub();
+  }, [db, showId, userId]);
+  return confirms;
 };
 
 export const createCue = async (

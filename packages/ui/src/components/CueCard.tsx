@@ -5,9 +5,18 @@ type CueCardProps = {
   onAck?: () => void;
   onConfirm?: () => void;
   onCant?: () => void;
+  children?: React.ReactNode;
 };
 
-export const CueCard = ({ cue, onStandby, onGo, onAck, onConfirm, onCant }: CueCardProps) => {
+export const CueCard = ({
+  cue,
+  onStandby,
+  onGo,
+  onAck,
+  onConfirm,
+  onCant,
+  children
+}: CueCardProps) => {
   const requiresConfirm = Boolean(cue.requiresConfirm);
   const hasActions = Boolean(onStandby || onGo || onAck || onConfirm || onCant);
 
@@ -59,6 +68,7 @@ export const CueCard = ({ cue, onStandby, onGo, onAck, onConfirm, onCant }: CueC
             )}
           </div>
         ) : null}
+        {children}
       </div>
     </div>
   );
