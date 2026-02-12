@@ -41,7 +41,22 @@ export type AppProps = {
   firebaseApp: FirebaseApp;
 };
 
-const RequireAuth = ({ user, children }: { user: User | null; children: React.ReactNode }) => {
+const RequireAuth = ({
+  user,
+  authReady,
+  children
+}: {
+  user: User | null;
+  authReady: boolean;
+  children: React.ReactNode;
+}) => {
+  if (!authReady) {
+    return (
+      <div className="cm-panel">
+        <h2>Connecting…</h2>
+      </div>
+    );
+  }
   if (!user) return <Navigate to="/auth" replace />;
   return <>{children}</>;
 };
@@ -94,7 +109,7 @@ export const App = ({ firebaseApp }: AppProps) => {
         <Route
           path="/"
           element={
-            <RequireAuth user={firebase.user}>
+            <RequireAuth user={firebase.user} authReady={firebase.authReady}>
               <Layout title="Create or join" right={rightContent}>
                 <LandingPage firebase={firebase} />
               </Layout>
@@ -104,7 +119,7 @@ export const App = ({ firebaseApp }: AppProps) => {
         <Route
           path="/show/:showId"
           element={
-            <RequireAuth user={firebase.user}>
+            <RequireAuth user={firebase.user} authReady={firebase.authReady}>
               <Layout title="Show lobby" right={rightContent}>
                 <ShowPage firebase={firebase} />
               </Layout>
@@ -114,7 +129,7 @@ export const App = ({ firebaseApp }: AppProps) => {
         <Route
           path="/show/:showId/feed"
           element={
-            <RequireAuth user={firebase.user}>
+            <RequireAuth user={firebase.user} authReady={firebase.authReady}>
               <Layout title="Operator feed" right={rightContent}>
                 <FeedPage firebase={firebase} />
               </Layout>
@@ -124,7 +139,7 @@ export const App = ({ firebaseApp }: AppProps) => {
         <Route
           path="/show/:showId/director"
           element={
-            <RequireAuth user={firebase.user}>
+            <RequireAuth user={firebase.user} authReady={firebase.authReady}>
               <Layout title="Director console" right={rightContent}>
                 <DirectorPage firebase={firebase} />
               </Layout>

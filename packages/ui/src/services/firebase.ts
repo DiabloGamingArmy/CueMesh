@@ -25,21 +25,24 @@ export type FirebaseContextValue = {
   app: FirebaseApp;
   db: Firestore;
   user: User | null;
+  authReady: boolean;
 };
 
 export const useFirebase = (app: FirebaseApp) => {
   const [user, setUser] = useState<User | null>(null);
+  const [authReady, setAuthReady] = useState(false);
   const auth = getAuth(app);
   const db = getFirestore(app);
 
   useEffect(() => {
     const unsub = onAuthStateChanged(auth, (nextUser) => {
       setUser(nextUser ?? null);
+      setAuthReady(true);
     });
     return () => unsub();
   }, [auth]);
 
-  return { app, db, user } satisfies FirebaseContextValue;
+  return { app, db, user, authReady } satisfies FirebaseContextValue;
 };
 
 const resolveDeviceId = () => {
