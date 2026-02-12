@@ -45,14 +45,33 @@ export const useFirebase = (app: FirebaseApp) => {
   return { app, db, user, authReady } satisfies FirebaseContextValue;
 };
 
-export const logClientEvent = async (
+const withTimeout = <T>(promise: Promise<T>, ms: number, label: string) =>
+  new Promise<T>((resolve, reject) => {
+    const t = setTimeout(() => reject(new Error(`${label} timed out after ${ms}ms`)), ms);
+    promise.then(
+      (value) => {
+        clearTimeout(t);
+        resolve(value);
+      },
+      (error) => {
+        clearTimeout(t);
+        reject(error);
+      }
+    );
+  });
+
+export const logClientEvent = (
   db: Firestore,
   payload: Record<string, unknown>
 ) => {
-  await addDoc(collection(db, 'clientLogs'), {
-    ...payload,
-    createdAt: serverTimestamp()
-  }).catch(() => undefined);
+  void withTimeout(
+    addDoc(collection(db, 'clientLogs'), {
+      ...payload,
+      createdAt: serverTimestamp()
+    }),
+    2000,
+    'clientLogs write'
+  ).catch(() => undefined);
 };
 
 const resolveDeviceId = () => {
@@ -94,23 +113,23 @@ export const createShow = async (
     deviceId: options?.deviceId ?? resolveDeviceId()
   });
 
-  const debugEventsEnabled =
-    typeof window !== 'undefined' && window.localStorage.getItem('cuemesh-debug-events') === '1';
+  const telemetryEnabled =
+    typeof import.meta === 'undefined' || import.meta.env.VITE_TELEMETRY !== '0';
 
-  if (debugEventsEnabled) {
-    void logClientEvent(db, { type: 'CREATE_SHOW_START', userId, name, venue });
+  if (telemetryEnabled) {
+    logClientEvent(db, { type: 'CREATE_SHOW_START', userId, name, venue, showId: showRef.id });
   }
 
   try {
-    await batch.commit();
-    if (debugEventsEnabled) {
-      void logClientEvent(db, { type: 'CREATE_SHOW_OK', showId: showRef.id, userId });
+    await withTimeout(batch.commit(), 12000, 'createShow Firestore commit');
+    if (telemetryEnabled) {
+      logClientEvent(db, { type: 'CREATE_SHOW_OK', showId: showRef.id, userId });
     }
   } catch (error) {
     console.error('[CueMesh] createShow failed', error);
     const message = error instanceof Error ? error.message : String(error);
-    if (debugEventsEnabled) {
-      void logClientEvent(db, {
+    if (telemetryEnabled) {
+      logClientEvent(db, {
         type: 'CREATE_SHOW_ERR',
         showId: showRef.id,
         userId,
@@ -118,7 +137,7 @@ export const createShow = async (
       });
     }
     throw new Error(
-      `createShow failed for showId=${showRef.id}, userId=${userId}, name=${name}: ${message}`
+      `createShow failed for showId=${showRef.id}, userId=${userId}, name=${name}: ${message}. Check Firestore rules and network connectivity.`
     );
   }
   return showRef.id;
