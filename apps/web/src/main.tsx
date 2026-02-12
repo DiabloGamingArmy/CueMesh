@@ -1,7 +1,6 @@
 import React from 'react';
 import ReactDOM from 'react-dom/client';
-import { App } from '@cuemesh/ui';
-import { installScriptProbe } from '@cuemesh/ui/debug/scriptProbe';
+import { App, installScriptProbe } from '@cuemesh/ui';
 import { BUILD_INFO, firebaseApp } from './firebase';
 
 installScriptProbe();
