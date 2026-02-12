@@ -5,6 +5,7 @@ import { LandingPage } from './pages/LandingPage';
 import { ShowPage } from './pages/ShowPage';
 import { FeedPage } from './pages/FeedPage';
 import { DirectorPage } from './pages/DirectorPage';
+import { DebugPage } from './pages/DebugPage';
 import { DebugScriptsPanel } from './components/DebugScriptsPanel';
 import { DebugOverlay } from './components/DebugOverlay';
 import type { FirebaseApp } from 'firebase/app';
@@ -149,6 +150,17 @@ export const App = ({ firebaseApp, buildInfo }: AppProps) => {
             <RequireAuth user={firebase.user} authReady={firebase.authReady}>
               <Layout title="Director console" right={rightContent} buildInfo={buildInfo}>
                 <DirectorPage firebase={firebase} />
+              </Layout>
+            </RequireAuth>
+          }
+        />
+
+        <Route
+          path="/debug"
+          element={
+            <RequireAuth user={firebase.user} authReady={firebase.authReady}>
+              <Layout title="Deployment sanity check" right={rightContent} buildInfo={buildInfo}>
+                <DebugPage firebase={firebase} buildInfo={buildInfo} />
               </Layout>
             </RequireAuth>
           }
