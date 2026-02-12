@@ -106,7 +106,7 @@ export const App = ({ firebaseApp, buildInfo }: AppProps) => {
             firebase.user ? (
               <Navigate to="/" replace />
             ) : (
-              <Layout title="Sign in" right={rightContent}>
+              <Layout title="Sign in" right={rightContent} buildInfo={buildInfo}>
                 <AuthPage firebase={firebase} />
               </Layout>
             )
@@ -116,7 +116,7 @@ export const App = ({ firebaseApp, buildInfo }: AppProps) => {
           path="/"
           element={
             <RequireAuth user={firebase.user} authReady={firebase.authReady}>
-              <Layout title="Create or join" right={rightContent}>
+              <Layout title="Create or join" right={rightContent} buildInfo={buildInfo}>
                 <LandingPage firebase={firebase} buildInfo={buildInfo} />
               </Layout>
             </RequireAuth>
@@ -126,7 +126,7 @@ export const App = ({ firebaseApp, buildInfo }: AppProps) => {
           path="/show/:showId"
           element={
             <RequireAuth user={firebase.user} authReady={firebase.authReady}>
-              <Layout title="Show lobby" right={rightContent}>
+              <Layout title="Show lobby" right={rightContent} buildInfo={buildInfo}>
                 <ShowPage firebase={firebase} />
               </Layout>
             </RequireAuth>
@@ -136,7 +136,7 @@ export const App = ({ firebaseApp, buildInfo }: AppProps) => {
           path="/show/:showId/feed"
           element={
             <RequireAuth user={firebase.user} authReady={firebase.authReady}>
-              <Layout title="Operator feed" right={rightContent}>
+              <Layout title="Operator feed" right={rightContent} buildInfo={buildInfo}>
                 <FeedPage firebase={firebase} />
               </Layout>
             </RequireAuth>
@@ -146,7 +146,7 @@ export const App = ({ firebaseApp, buildInfo }: AppProps) => {
           path="/show/:showId/director"
           element={
             <RequireAuth user={firebase.user} authReady={firebase.authReady}>
-              <Layout title="Director console" right={rightContent}>
+              <Layout title="Director console" right={rightContent} buildInfo={buildInfo}>
                 <DirectorPage firebase={firebase} />
               </Layout>
             </RequireAuth>
