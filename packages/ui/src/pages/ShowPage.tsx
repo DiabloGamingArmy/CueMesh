@@ -1,4 +1,4 @@
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { ErrorBanner } from '../components/ErrorBanner';
 import { PresenceList } from '../components/PresenceList';
@@ -18,6 +18,16 @@ export const ShowPage = ({ firebase }: { firebase: FirebaseContextValue }) => {
   const [department, setDepartment] = useState<Department>('DECK');
   const [customDeptLabel, setCustomDeptLabel] = useState('');
   const [copyStatus, setCopyStatus] = useState<string | null>(null);
+  const [isLoading, setIsLoading] = useState(true);
+
+  useEffect(() => {
+    if (show || error) {
+      setIsLoading(false);
+      return;
+    }
+    const timeout = window.setTimeout(() => setIsLoading(false), 1500);
+    return () => window.clearTimeout(timeout);
+  }, [show, error]);
 
   const userId = firebase.user?.uid;
   const deviceId = useMemo(() => {
@@ -61,20 +71,23 @@ export const ShowPage = ({ firebase }: { firebase: FirebaseContextValue }) => {
       <section className="cm-panel">
         <div className="cm-panel-hd">
           <div className="cm-title">Show Lobby</div>
-          <span className="cm-chip">{String(show?.name ?? 'Unknown show')}</span>
+          <span className="cm-chip">{String(show?.name ?? showId ?? 'Show')}</span>
         </div>
         <div className="cm-panel-bd cm-stack">
+          {isLoading ? <div className="cm-muted">Loading show…</div> : null}
+
           {error ? (
-            <ErrorBanner
-              message={`Unable to load show: ${error.message}. This is usually a Firestore rules or membership issue.`}
-            />
+            <div className="cm-stack">
+              <ErrorBanner message={`Unable to load show: ${error.message}`} />
+              <div className="cm-muted">Common causes: rules deny read, membership missing.</div>
+            </div>
           ) : null}
 
           <div className="cm-row" style={{ alignItems: 'center' }}>
             <strong>Show ID:</strong>
             <code>{showId ?? '(missing)'}</code>
             <button className="cm-btn" onClick={handleCopyShowId} disabled={!showId}>
-              Copy
+              Copy Show ID
             </button>
             {copyStatus ? <span className="cm-chip">{copyStatus}</span> : null}
           </div>
@@ -82,7 +95,7 @@ export const ShowPage = ({ firebase }: { firebase: FirebaseContextValue }) => {
           <div className="cm-grid" style={{ gridTemplateColumns: 'repeat(3, minmax(0, 1fr))' }}>
             <div className="cm-panel">
               <div className="cm-panel-bd">
-                <div className="cm-muted">Name</div>
+                <div className="cm-muted">Show name</div>
                 <div>{String(show?.name ?? '(unavailable)')}</div>
               </div>
             </div>
@@ -109,20 +122,20 @@ export const ShowPage = ({ firebase }: { firebase: FirebaseContextValue }) => {
             </div>
           </div>
 
-          {member ? (
-            <div className="cm-row">
-              <button className="cm-btn cm-btn-good" onClick={() => navigate(`/show/${showId}/feed`)}>
-                Open Feed
+          <div className="cm-row">
+            <button className="cm-btn cm-btn-good" onClick={() => navigate(`/show/${showId}/feed`)}>
+              Open Feed
+            </button>
+            {member?.accessRole === 'DIRECTOR' ? (
+              <button className="cm-btn" onClick={() => navigate(`/show/${showId}/director`)}>
+                Open Director
               </button>
-              {member.accessRole === 'DIRECTOR' ? (
-                <button className="cm-btn" onClick={() => navigate(`/show/${showId}/director`)}>
-                  Open Director Console
-                </button>
-              ) : null}
-            </div>
-          ) : (
+            ) : null}
+          </div>
+
+          {!member ? (
             <>
-              <p style={{ color: 'var(--muted)' }}>Join this show to access Feed or Director routes.</p>
+              <p style={{ color: 'var(--muted)' }}>Join this show to establish membership identity.</p>
               <label>
                 Display name
                 <input value={displayName} onChange={(event) => setDisplayName(event.target.value)} required />
@@ -147,14 +160,14 @@ export const ShowPage = ({ firebase }: { firebase: FirebaseContextValue }) => {
                 </label>
               ) : null}
               <button
-                className="cm-btn cm-btn-good"
+                className="cm-btn"
                 onClick={handleJoin}
-                disabled={!userId || !displayName.trim()}
+                disabled={!userId || !displayName.trim() || !showId}
               >
                 Join show
               </button>
             </>
-          )}
+          ) : null}
         </div>
       </section>
 
