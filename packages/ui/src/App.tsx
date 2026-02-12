@@ -6,8 +6,6 @@ import { ShowPage } from './pages/ShowPage';
 import { FeedPage } from './pages/FeedPage';
 import { DirectorPage } from './pages/DirectorPage';
 import { DebugPage } from './pages/DebugPage';
-import { DebugScriptsPanel } from './components/DebugScriptsPanel';
-import { DebugOverlay } from './components/DebugOverlay';
 import type { FirebaseApp } from 'firebase/app';
 import { useFirebase } from './services/firebase';
 import { useEffect, useMemo, useState } from 'react';
@@ -159,19 +157,19 @@ export const App = ({ firebaseApp, buildInfo }: AppProps) => {
           }
         />
 
-        <Route
-          path="/debug"
-          element={
-            <RequireAuth user={firebase.user} authReady={firebase.authReady}>
-              <Layout title="Deployment sanity check" right={rightContent} buildInfo={buildInfo}>
-                <DebugPage firebase={firebase} buildInfo={buildInfo} />
-              </Layout>
-            </RequireAuth>
-          }
-        />
+        {debugEnabled ? (
+          <Route
+            path="/debug"
+            element={
+              <RequireAuth user={firebase.user} authReady={firebase.authReady}>
+                <Layout title="Deployment sanity check" right={rightContent} buildInfo={buildInfo}>
+                  <DebugPage firebase={firebase} buildInfo={buildInfo} />
+                </Layout>
+              </RequireAuth>
+            }
+          />
+        ) : null}
       </Routes>
-      {debugEnabled ? <DebugScriptsPanel /> : null}
-      {debugEnabled ? <DebugOverlay db={firebase.db} /> : null}
     </BrowserRouter>
   );
 };

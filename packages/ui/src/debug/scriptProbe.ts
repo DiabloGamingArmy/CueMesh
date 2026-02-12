@@ -85,8 +85,7 @@ export const getScriptProbeReport = () => ({
 const isEnabled = () => {
   if (typeof window === 'undefined') return false;
   const params = new URLSearchParams(window.location.search);
-  if (params.get('debugScripts') === '1') return true;
-  return window.localStorage.getItem('cuemesh-debug-scripts') === '1';
+  return params.get('debugScripts') === '1';
 };
 
 export const installScriptProbe = () => {
