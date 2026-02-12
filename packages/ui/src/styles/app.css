@@ -87,6 +87,13 @@
   flex: 1;
 }
 
+.cm-build-stamp {
+  font-size: 11px;
+  color: var(--muted);
+  opacity: 0.9;
+  white-space: nowrap;
+}
+
 .cm-btn {
   border: 1px solid var(--border);
   background: rgba(255, 255, 255, 0.04);

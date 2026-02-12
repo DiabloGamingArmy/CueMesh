@@ -1,4 +1,5 @@
 import { useMemo, useState } from 'react';
+import { Link } from 'react-router-dom';
 import { getScriptProbeReport } from '../debug/scriptProbe';
 
 const isEnabled = () => {
@@ -41,10 +42,13 @@ export const DebugScriptsPanel = () => {
           Refresh
         </button>
       </div>
-      <div style={{ marginBottom: 8 }}>
+      <div style={{ marginBottom: 8, display: 'flex', gap: 8, alignItems: 'center' }}>
         <button className="cm-btn" onClick={handleCopy}>
           Copy report
         </button>
+        <Link className="cm-btn" to="/debug">
+          Deployment check
+        </Link>
       </div>
       <div style={{ fontSize: 12 }}>
         <div>Scripts: {report.scripts.length}</div>

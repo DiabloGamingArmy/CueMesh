@@ -94,23 +94,23 @@ export const createShow = async (
     deviceId: options?.deviceId ?? resolveDeviceId()
   });
 
-  const debugEventsEnabled =
-    typeof window !== 'undefined' && window.localStorage.getItem('cuemesh-debug-events') === '1';
+  const telemetryEnabled =
+    typeof import.meta === 'undefined' || import.meta.env.VITE_TELEMETRY !== '0';
 
-  if (debugEventsEnabled) {
-    void logClientEvent(db, { type: 'CREATE_SHOW_START', userId, name, venue });
+  if (telemetryEnabled) {
+    await logClientEvent(db, { type: 'CREATE_SHOW_START', userId, name, venue, showId: showRef.id });
   }
 
   try {
     await batch.commit();
-    if (debugEventsEnabled) {
-      void logClientEvent(db, { type: 'CREATE_SHOW_OK', showId: showRef.id, userId });
+    if (telemetryEnabled) {
+      await logClientEvent(db, { type: 'CREATE_SHOW_OK', showId: showRef.id, userId });
     }
   } catch (error) {
     console.error('[CueMesh] createShow failed', error);
     const message = error instanceof Error ? error.message : String(error);
-    if (debugEventsEnabled) {
-      void logClientEvent(db, {
+    if (telemetryEnabled) {
+      await logClientEvent(db, {
         type: 'CREATE_SHOW_ERR',
         showId: showRef.id,
         userId,
