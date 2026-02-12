@@ -45,6 +45,16 @@ export const useFirebase = (app: FirebaseApp) => {
   return { app, db, user, authReady } satisfies FirebaseContextValue;
 };
 
+export const logClientEvent = async (
+  db: Firestore,
+  payload: Record<string, unknown>
+) => {
+  await addDoc(collection(db, 'clientLogs'), {
+    ...payload,
+    createdAt: serverTimestamp()
+  }).catch(() => undefined);
+};
+
 const resolveDeviceId = () => {
   if (typeof crypto !== 'undefined' && 'randomUUID' in crypto) {
     return crypto.randomUUID();
@@ -84,24 +94,29 @@ export const createShow = async (
     deviceId: options?.deviceId ?? resolveDeviceId()
   });
 
-  if (
-    typeof window !== 'undefined' &&
-    window.localStorage.getItem('cuemesh-debug-events') === '1'
-  ) {
-    void addDoc(collection(db, 'debugEvents'), {
-      type: 'CREATE_SHOW',
-      userId,
-      name,
-      venue,
-      createdAt: serverTimestamp()
-    }).catch(() => undefined);
+  const debugEventsEnabled =
+    typeof window !== 'undefined' && window.localStorage.getItem('cuemesh-debug-events') === '1';
+
+  if (debugEventsEnabled) {
+    void logClientEvent(db, { type: 'CREATE_SHOW_START', userId, name, venue });
   }
 
   try {
     await batch.commit();
+    if (debugEventsEnabled) {
+      void logClientEvent(db, { type: 'CREATE_SHOW_OK', showId: showRef.id, userId });
+    }
   } catch (error) {
     console.error('[CueMesh] createShow failed', error);
     const message = error instanceof Error ? error.message : String(error);
+    if (debugEventsEnabled) {
+      void logClientEvent(db, {
+        type: 'CREATE_SHOW_ERR',
+        showId: showRef.id,
+        userId,
+        message
+      });
+    }
     throw new Error(
       `createShow failed for showId=${showRef.id}, userId=${userId}, name=${name}: ${message}`
     );

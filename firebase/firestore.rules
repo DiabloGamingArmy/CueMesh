@@ -17,6 +17,11 @@ service cloud.firestore {
       return isMember(showId) && memberDoc(showId).data.accessRole == 'DIRECTOR';
     }
 
+    match /clientLogs/{docId} {
+      allow create: if isSignedIn();
+      allow read, update, delete: if false;
+    }
+
     match /shows/{showId} {
       allow read: if isSignedIn() && isMember(showId);
       allow create: if isSignedIn();
