@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import type { FirebaseContextValue } from '../services/firebase';
-import { createShow } from '../services/firebase';
+import { createShow, logClientEvent } from '../services/firebase';
 import { ErrorBanner } from '../components/ErrorBanner';
 import type { BuildInfo } from '../App';
 
@@ -20,6 +20,7 @@ export const LandingPage = ({
   const [isWorking, setIsWorking] = useState(false);
   const [debug, setDebug] = useState<string | null>('Idle');
   const [actionLog, setActionLog] = useState<string[]>([]);
+  const [clickReceivedAt, setClickReceivedAt] = useState<string | null>(null);
   const userId = firebase.user?.uid;
   const debugEnabled =
     typeof window !== 'undefined' && new URLSearchParams(window.location.search).get('debug') === '1';
@@ -32,6 +33,10 @@ export const LandingPage = ({
   const buildTime = buildInfo?.time ?? 'local';
 
   const handleCreate = async () => {
+    const now = new Date();
+    const clickStamp = `${now.toLocaleTimeString([], { hour12: false })}.${String(now.getMilliseconds()).padStart(3, '0')}`;
+    setClickReceivedAt(clickStamp);
+    pushAction(`Click received at ${clickStamp}`);
     setDebug('Create clicked');
     pushAction('Clicked');
     if (debugEnabled) window.alert('Create Show clicked (debug=1)');
@@ -43,6 +48,13 @@ export const LandingPage = ({
       setErrorMessage(message);
       setDebug('Blocked: no user');
       pushAction('User present: no');
+      await logClientEvent(firebase.db, {
+        type: 'CREATE_SHOW_BLOCKED_AUTH',
+        reason: 'NO_USER',
+        showName: name.trim(),
+        venue,
+        clickReceivedAt: clickStamp
+      });
       return;
     }
 
@@ -133,9 +145,22 @@ export const LandingPage = ({
             Venue
             <input value={venue} onChange={(event) => setVenue(event.target.value)} />
           </label>
-          <button className="cm-btn cm-btn-good" onClick={handleCreate} disabled={isWorking}>
+          <button
+            type="button"
+            className="cm-btn cm-btn-good"
+            onPointerDown={() => {
+              const now = new Date();
+              const stamp = `${now.toLocaleTimeString([], { hour12: false })}.${String(now.getMilliseconds()).padStart(3, '0')}`;
+              pushAction(`PointerDown at ${stamp}`);
+            }}
+            onClick={handleCreate}
+            disabled={isWorking}
+          >
             {isWorking ? 'Creating…' : 'Create show'}
           </button>
+          <div className="cm-muted" style={{ marginTop: 8, fontSize: 12 }}>
+            {clickReceivedAt ? `Click received at ${clickReceivedAt}` : 'Waiting for create interaction…'}
+          </div>
         </div>
       </section>
       <section className="cm-panel">

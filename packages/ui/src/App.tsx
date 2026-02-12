@@ -6,6 +6,7 @@ import { ShowPage } from './pages/ShowPage';
 import { FeedPage } from './pages/FeedPage';
 import { DirectorPage } from './pages/DirectorPage';
 import { DebugScriptsPanel } from './components/DebugScriptsPanel';
+import { DebugOverlay } from './components/DebugOverlay';
 import type { FirebaseApp } from 'firebase/app';
 import { useFirebase } from './services/firebase';
 import { useEffect, useMemo, useState } from 'react';
@@ -154,6 +155,7 @@ export const App = ({ firebaseApp, buildInfo }: AppProps) => {
         />
       </Routes>
       <DebugScriptsPanel />
+      <DebugOverlay db={firebase.db} />
     </BrowserRouter>
   );
 };
