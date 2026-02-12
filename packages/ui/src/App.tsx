@@ -85,6 +85,10 @@ export const App = ({ firebaseApp, buildInfo }: AppProps) => {
     ),
     [theme, setTheme]
   );
+  const debugEnabled =
+    typeof window !== 'undefined' &&
+    new URLSearchParams(window.location.search).get('debug') === '1';
+
   const rightContent = useMemo(
     () => (
       <div className="cm-row">
@@ -166,8 +170,8 @@ export const App = ({ firebaseApp, buildInfo }: AppProps) => {
           }
         />
       </Routes>
-      <DebugScriptsPanel />
-      <DebugOverlay db={firebase.db} />
+      {debugEnabled ? <DebugScriptsPanel /> : null}
+      {debugEnabled ? <DebugOverlay db={firebase.db} /> : null}
     </BrowserRouter>
   );
 };
