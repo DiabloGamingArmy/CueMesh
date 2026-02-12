@@ -56,6 +56,7 @@ export const createShow = async (
   venue: string,
   options?: { email?: string; deviceId?: string }
 ) => {
+  console.log('[CueMesh] createShow start', { userId, name, venue });
   const showRef = doc(collection(db, 'shows'));
   const batch = writeBatch(db);
   batch.set(showRef, {
@@ -96,8 +97,11 @@ export const createShow = async (
   try {
     await batch.commit();
   } catch (error) {
+    console.error('[CueMesh] createShow failed', error);
     const message = error instanceof Error ? error.message : String(error);
-    throw new Error(`createShow failed for showId=${showRef.id}: ${message}`);
+    throw new Error(
+      `createShow failed for showId=${showRef.id}, userId=${userId}, name=${name}: ${message}`
+    );
   }
   return showRef.id;
 };

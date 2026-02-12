@@ -11,39 +11,48 @@ export const LandingPage = ({ firebase }: { firebase: FirebaseContextValue }) =>
   const [showId, setShowId] = useState('');
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [isWorking, setIsWorking] = useState(false);
-  const [debugStatus, setDebugStatus] = useState('Idle');
+  const [debug, setDebug] = useState<string | null>('Idle');
   const userId = firebase.user?.uid;
 
   const handleCreate = async () => {
+    setDebug('Create clicked');
     console.log('[CueMesh] CreateShow click', { userId, name, venue });
-    if (!userId) {
-      setErrorMessage('Not signed in (userId missing). Refresh and sign in again.');
-      setDebugStatus('Blocked: missing userId');
+
+    if (!firebase.user) {
+      const message =
+        'Not signed in or auth not ready. If you just signed in, wait 1–2 seconds and try again.';
+      setErrorMessage(message);
+      setDebug('Blocked: no user');
       return;
     }
+
     if (isWorking) {
       setErrorMessage('Create already in progress…');
-      setDebugStatus('Blocked: already working');
+      setDebug('Blocked: already working');
       return;
     }
+
     if (!name.trim()) {
       setErrorMessage('Show name is required.');
-      setDebugStatus('Blocked: missing show name');
+      setDebug('Blocked: missing show name');
       return;
     }
+
     setIsWorking(true);
     setErrorMessage(null);
-    setDebugStatus('Creating…');
+    setDebug('Creating show…');
+
     try {
-      const id = await createShow(firebase.db, userId, name.trim(), venue, {
-        email: firebase.user?.email ?? undefined
+      const id = await createShow(firebase.db, firebase.user.uid, name.trim(), venue, {
+        email: firebase.user.email ?? undefined
       });
-      setDebugStatus(`Created show ${id}, navigating…`);
+      setDebug(`Created show ${id}, navigating…`);
       navigate(`/show/${id}`);
     } catch (error) {
       const message = error instanceof Error ? error.message : 'Failed to create show.';
+      console.error('[CueMesh] CreateShow failed', error);
       setErrorMessage(message);
-      setDebugStatus(`Error: ${message}`);
+      setDebug(`Create failed: ${message}`);
     } finally {
       setIsWorking(false);
     }
@@ -66,6 +75,14 @@ export const LandingPage = ({ firebase }: { firebase: FirebaseContextValue }) =>
               <ErrorBanner message={errorMessage} />
             </div>
           ) : null}
+
+          <div className="cm-stack" style={{ marginBottom: 10, fontSize: 12, color: 'var(--muted)' }}>
+            <div>Signed in as: {firebase.user?.email ?? '(none)'}</div>
+            <div>UID: {userId ?? '(none)'}</div>
+            <div>Working: {String(isWorking)}</div>
+            <div>Last action: {debug ?? '(none)'}</div>
+          </div>
+
           <label>
             Show name
             <input value={name} onChange={(event) => setName(event.target.value)} />
@@ -74,18 +91,9 @@ export const LandingPage = ({ firebase }: { firebase: FirebaseContextValue }) =>
             Venue
             <input value={venue} onChange={(event) => setVenue(event.target.value)} />
           </label>
-          <button
-            className="cm-btn cm-btn-good"
-            onClick={handleCreate}
-            disabled={!userId || isWorking}
-          >
-            Create show
+          <button className="cm-btn cm-btn-good" onClick={handleCreate} disabled={isWorking}>
+            {isWorking ? 'Creating…' : 'Create show'}
           </button>
-          <div className="cm-stack" style={{ marginTop: 10, fontSize: 12, color: 'var(--muted)' }}>
-            <div>Auth UID: {userId ?? '(none)'}</div>
-            <div>Working: {String(isWorking)}</div>
-            <div>Status: {debugStatus}</div>
-          </div>
         </div>
       </section>
       <section className="cm-panel">
