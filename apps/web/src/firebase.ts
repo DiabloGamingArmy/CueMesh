@@ -6,3 +6,8 @@ export const firebaseApp = initializeApp({
   projectId: import.meta.env.VITE_FIREBASE_PROJECT_ID,
   appId: import.meta.env.VITE_FIREBASE_APP_ID
 });
+
+export const BUILD_INFO = {
+  sha: import.meta.env.VITE_BUILD_SHA ?? 'dev',
+  time: import.meta.env.VITE_BUILD_TIME ?? 'local'
+};

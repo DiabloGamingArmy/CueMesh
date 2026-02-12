@@ -37,8 +37,14 @@ const useTheme = () => {
   return { theme, setTheme };
 };
 
+export type BuildInfo = {
+  sha: string;
+  time: string;
+};
+
 export type AppProps = {
   firebaseApp: FirebaseApp;
+  buildInfo?: BuildInfo;
 };
 
 const RequireAuth = ({
@@ -61,7 +67,7 @@ const RequireAuth = ({
   return <>{children}</>;
 };
 
-export const App = ({ firebaseApp }: AppProps) => {
+export const App = ({ firebaseApp, buildInfo }: AppProps) => {
   const firebase = useFirebase(firebaseApp);
   const { theme, setTheme } = useTheme();
   const auth = useMemo(() => getAuth(firebaseApp), [firebaseApp]);
@@ -111,7 +117,7 @@ export const App = ({ firebaseApp }: AppProps) => {
           element={
             <RequireAuth user={firebase.user} authReady={firebase.authReady}>
               <Layout title="Create or join" right={rightContent}>
-                <LandingPage firebase={firebase} />
+                <LandingPage firebase={firebase} buildInfo={buildInfo} />
               </Layout>
             </RequireAuth>
           }

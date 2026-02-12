@@ -3,8 +3,15 @@ import { useNavigate } from 'react-router-dom';
 import type { FirebaseContextValue } from '../services/firebase';
 import { createShow } from '../services/firebase';
 import { ErrorBanner } from '../components/ErrorBanner';
+import type { BuildInfo } from '../App';
 
-export const LandingPage = ({ firebase }: { firebase: FirebaseContextValue }) => {
+export const LandingPage = ({
+  firebase,
+  buildInfo
+}: {
+  firebase: FirebaseContextValue;
+  buildInfo?: BuildInfo;
+}) => {
   const navigate = useNavigate();
   const [name, setName] = useState('');
   const [venue, setVenue] = useState('');
@@ -13,6 +20,9 @@ export const LandingPage = ({ firebase }: { firebase: FirebaseContextValue }) =>
   const [isWorking, setIsWorking] = useState(false);
   const [debug, setDebug] = useState<string | null>('Idle');
   const userId = firebase.user?.uid;
+
+  const buildShaShort = (buildInfo?.sha ?? 'dev').slice(0, 7);
+  const buildTime = buildInfo?.time ?? 'local';
 
   const handleCreate = async () => {
     setDebug('Create clicked');
@@ -70,6 +80,9 @@ export const LandingPage = ({ firebase }: { firebase: FirebaseContextValue }) =>
           <div className="cm-title">Create a show</div>
         </div>
         <div className="cm-panel-bd">
+          <div className="cm-muted" style={{ marginBottom: 8 }}>
+            Build: {buildShaShort} / {buildTime}
+          </div>
           {errorMessage ? (
             <div style={{ marginBottom: 12 }}>
               <ErrorBanner message={errorMessage} />
