@@ -79,7 +79,26 @@ export const createShow = async (
     },
     deviceId: options?.deviceId ?? resolveDeviceId()
   });
-  await batch.commit();
+
+  if (
+    typeof window !== 'undefined' &&
+    window.localStorage.getItem('cuemesh-debug-events') === '1'
+  ) {
+    void addDoc(collection(db, 'debugEvents'), {
+      type: 'CREATE_SHOW',
+      userId,
+      name,
+      venue,
+      createdAt: serverTimestamp()
+    }).catch(() => undefined);
+  }
+
+  try {
+    await batch.commit();
+  } catch (error) {
+    const message = error instanceof Error ? error.message : String(error);
+    throw new Error(`createShow failed for showId=${showRef.id}: ${message}`);
+  }
   return showRef.id;
 };
 
