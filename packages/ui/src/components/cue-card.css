@@ -1,0 +1,44 @@
+.cue-card {
+  background: #fff;
+  border-radius: 12px;
+  padding: 16px;
+  box-shadow: 0 2px 8px rgba(16, 24, 40, 0.08);
+  margin-bottom: 16px;
+}
+
+.cue-header {
+  display: flex;
+  justify-content: space-between;
+  gap: 16px;
+}
+
+.cue-title {
+  font-weight: 600;
+  font-size: 1.1rem;
+}
+
+.cue-meta {
+  display: flex;
+  gap: 12px;
+  font-size: 0.85rem;
+  color: #667085;
+}
+
+.cue-actions button {
+  margin-left: 8px;
+  border: none;
+  border-radius: 8px;
+  padding: 6px 10px;
+  background: #2563eb;
+  color: #fff;
+  cursor: pointer;
+}
+
+.cue-actions button.warn {
+  background: #b42318;
+}
+
+.cue-details {
+  margin-top: 8px;
+  color: #475467;
+}
