@@ -88,6 +88,9 @@ export const LandingPage = ({
           <button type="button" className="cm-btn cm-btn-good" onClick={handleCreate} disabled={isWorking}>
             {isWorking ? 'Creating…' : 'Create show'}
           </button>
+          <div className="cm-muted" style={{ marginTop: 8, fontSize: 12 }}>
+            {clickReceivedAt ? `Click received at ${clickReceivedAt}` : 'Waiting for create interaction…'}
+          </div>
         </div>
       </section>
       <section className="cm-panel">
